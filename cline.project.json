@@ -1,0 +1,17 @@
+{
+    "agents": {
+      "FrontendDev": {
+        "directory": "frontend"
+      },
+      "BackendDev": {
+        "directory": "backend"
+      },
+      "DocBot": {
+        "directory": "docs"
+      },
+      "TesterBot": {
+        "directory": "tests"
+      }
+    }
+  }
+  
