@@ -1,0 +1,261 @@
+openapi: 3.0.0
+info:
+  title: API de Autenticación
+  version: "1.0.0"
+  description: "Especificación de la API para registro, login y gestión de perfiles de usuario."
+
+paths:
+  /api/auth/register/:
+    post:
+      summary: "Registra un nuevo usuario"
+      operationId: registerUser
+      tags:
+        - Autenticación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: "Usuario registrado exitosamente"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: "Datos inválidos"
+
+  /api/auth/login/:
+    post:
+      summary: "Autentica un usuario"
+      operationId: loginUser
+      tags:
+        - Autenticación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: "Login exitoso"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: "Credenciales inválidas"
+
+  /api/auth/refresh/:
+    post:
+      summary: "Refresca el token de acceso"
+      operationId: refreshToken
+      tags:
+        - Autenticación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: "Token de acceso refrescado"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: "Token de refresco inválido o expirado"
+
+  /api/auth/me/:
+    get:
+      summary: "Obtiene el perfil del usuario actual"
+      operationId: getUserProfile
+      tags:
+        - Perfil de Usuario
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "Perfil del usuario"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: "No autorizado"
+    put:
+      summary: "Actualiza el perfil del usuario actual"
+      operationId: updateUserProfile
+      tags:
+        - Perfil de Usuario
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: "Perfil actualizado"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: "Datos inválidos"
+        '401':
+          description: "No autorizado"
+
+  /api/auth/change-password/:
+    post:
+      summary: "Cambia la contraseña del usuario"
+      operationId: changePassword
+      tags:
+        - Perfil de Usuario
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+      responses:
+        '200':
+          description: "Contraseña cambiada exitosamente"
+        '400':
+          description: "Datos inválidos"
+        '401':
+          description: "No autorizado"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserRegistration:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - password2
+      properties:
+        username:
+          type: string
+          example: "nuevo_usuario"
+        email:
+          type: string
+          format: email
+          example: "usuario@ejemplo.com"
+        password:
+          type: string
+          format: password
+          example: "micontraseña123"
+        password2:
+          type: string
+          format: password
+          example: "micontraseña123"
+        first_name:
+          type: string
+          example: "Juan"
+        last_name:
+          type: string
+          example: "Perez"
+
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "usuario@ejemplo.com"
+        password:
+          type: string
+          format: password
+          example: "micontraseña123"
+
+    Tokens:
+      type: object
+      properties:
+        refresh:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        access:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        tokens:
+          $ref: '#/components/schemas/Tokens'
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+
+    ChangePassword:
+      type: object
+      required:
+        - old_password
+        - new_password
+      properties:
+        old_password:
+          type: string
+          format: password
+        new_password:
+          type: string
+          format: password
